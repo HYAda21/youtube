@@ -11,7 +11,15 @@ dotenv.config({
   path:'./env'
 })
 
-connectDB();
+connectDB()
+.then(()=>{
+  app.listen(process.env.PORT || 8000,()=>{
+    console.log(`server  is runing ata port: $(process.env.PORT)`)
+  })
+})
+.catch((err)=>{
+  console.log("Mongo db connection failed",err);
+})
 
    /* as it is a second method as in that we not create another file like create in db as Index.js as write all the content here
     await  mongoose.connect(`$(process.env.MONGODB_URL)/${DB_NAME}`)
