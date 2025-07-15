@@ -30,8 +30,8 @@ const userSchema = new Schema({
         required:true
 
       },
-      coverimage: {
-        type:String
+      coverImage: {
+        type:Strings
       },
       watchHistory:[
         {
@@ -58,7 +58,7 @@ const userSchema = new Schema({
         if(!this.isModified("passward"))return next();
 
     
-        this.passward = bcrypt.hash(this.passward, 10)
+        this.passward = await bcrypt.hash(this.passward, 10)
         next()
     })
 userSchema.methods.isPasswordCorrect = async function (passward){
