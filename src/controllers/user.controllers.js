@@ -1,7 +1,7 @@
 import { asyncHandler } from "../utilis/aysnchandler.js";
 import {apiError} from "../utilis/apiError.js"
 import { User } from "../models/user.models.js";
-import {uploadOnCloudnary} from "../utilis/cloudnary.js"
+import {uploadOnCloudinary} from "../utilis/cloudinary.js"
 import { apiResponse } from "../utilis/apiResponse.js";
 
 const registerUser = asyncHandler(async (req,res)=>{
@@ -15,30 +15,34 @@ const registerUser = asyncHandler(async (req,res)=>{
     //return res
 
 
-   const {fullName,email, username, passward}=  req.body
+   const {fullName,email, username, password}=  req.body
    console.log("email",email);
-   if([fullName,email,username,passward].some((field)=> 
+   if([fullName,email,username,password].some((field)=> 
     field?.trim()==="")
 
    ){
        throw new apiError(400, "all fields are required")
    }
-  const existUser=   User.findOne({
+  const existUser=  await User.findOne({
     $or: [{username},{email}]
    })
    if(existUser){
-    throw new apiError(409), "user with email or username already exist"
+    throw new apiError(409, "user with email or username already exist")
    }
 
   const avatarLocalPath =  req.files?.avatar[0]?.path;
   const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
-  if(avatarLocalPath){
+  if(!avatarLocalPath){
+    console.log("FILES =>", req.files); // Add this before line 37
+   console.log("BODY  =>", req.body);
+
     throw new apiError(400,"avatar file is require")
   }
 
-const avatar = await uploadOnCloudnary(avatarLocalPath)
- const coverImage = await uploadOnCloudnary(coverImageLocalPath)
+const avatar = await uploadOnCloudinary(avatarLocalPath)
+console.log("Cloudinary avatar upload result:", avatar);
+ const coverImage = await uploadOnCloudinary(coverImageLocalPath)
 
  if(!avatar){
   throw new apiError(400,"avatar files is require")
@@ -49,12 +53,12 @@ const avatar = await uploadOnCloudnary(avatarLocalPath)
   avatar: avatar.url,
   coverImage : coverImage?.url || "",
   email,
-  passward,
+  password,
   username:username.toLowerCase()
  })
 
  const createuser = await User.findById(user._id).select(
-  "-passward - refreshToken"
+  "-password -refreshToken"
  )
 
  if(!createuser){
